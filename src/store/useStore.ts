@@ -1,4 +1,11 @@
 import { create } from 'zustand'
+import type { IntersectionResult } from '../intersection'
+
+export interface IntersectionState {
+  idA: string | null
+  idB: string | null
+  result: IntersectionResult | null
+}
 
 export type RenderMode = '2d' | '3d'
 
@@ -98,22 +105,30 @@ interface StoreState {
   renderMode: RenderMode
   objects: SceneObject[]
   selectedId: string | null
+  intersection: IntersectionState
   setRenderMode: (mode: RenderMode) => void
   addObject: (obj: SceneObject) => void
   removeObject: (id: string) => void
   toggleVisible: (id: string) => void
   selectObject: (id: string | null) => void
   setObjects: (objects: SceneObject[]) => void
+  setIntersectionPair: (idA: string | null, idB: string | null) => void
+  setIntersectionResult: (result: IntersectionResult | null) => void
+  clearIntersection: () => void
 }
 
 export const useStore = create<StoreState>((set) => ({
   renderMode: '2d',
   objects: [],
   selectedId: null,
+  intersection: { idA: null, idB: null, result: null },
   setRenderMode: (mode) => set({ renderMode: mode }),
   addObject: (obj) => set((s) => ({ objects: [...s.objects, obj] })),
   removeObject: (id) => set((s) => ({ objects: s.objects.filter((o) => o.id !== id), selectedId: s.selectedId === id ? null : s.selectedId })),
   toggleVisible: (id) => set((s) => ({ objects: s.objects.map((o) => o.id === id ? { ...o, visible: !o.visible } : o) })),
   selectObject: (id) => set({ selectedId: id }),
   setObjects: (objects) => set({ objects }),
+  setIntersectionPair: (idA, idB) => set((s) => ({ intersection: { ...s.intersection, idA, idB, result: null } })),
+  setIntersectionResult: (result) => set((s) => ({ intersection: { ...s.intersection, result } })),
+  clearIntersection: () => set({ intersection: { idA: null, idB: null, result: null } }),
 }))

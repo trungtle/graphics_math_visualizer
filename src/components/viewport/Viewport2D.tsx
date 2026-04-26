@@ -196,6 +196,7 @@ export function Viewport2D({ canvasRef: externalRef }: { canvasRef?: RefObject<H
   const transformRef = useRef<Transform>({ ox: 0, oy: 0, scale: 60 })
   const dragRef = useRef<{ x: number; y: number } | null>(null)
   const objects = useStore((s) => s.objects)
+  const intersection = useStore((s) => s.intersection)
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current
@@ -221,7 +222,26 @@ export function Viewport2D({ canvasRef: externalRef }: { canvasRef?: RefObject<H
         case 'triangle': drawTriangle(ctx, obj, t); break
       }
     }
-  }, [objects])
+
+    if (intersection.result?.exists) {
+      for (const [px, py] of intersection.result.points) {
+        const cp = toCanvas(px, py, t)
+        ctx.beginPath()
+        ctx.arc(cp.x, cp.y, 9, 0, Math.PI * 2)
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(cp.x, cp.y, 5, 0, Math.PI * 2)
+        ctx.fillStyle = '#facc15'
+        ctx.fill()
+        ctx.fillStyle = '#facc15'
+        ctx.font = '10px monospace'
+        ctx.textAlign = 'left'
+        ctx.fillText(`(${px.toPrecision(3)}, ${py.toPrecision(3)})`, cp.x + 11, cp.y - 4)
+      }
+    }
+  }, [objects, intersection])
 
   useEffect(() => {
     const canvas = canvasRef.current

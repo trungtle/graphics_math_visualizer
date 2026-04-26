@@ -113,13 +113,13 @@ Created: 2026-04-26
 
 | Task | Content | DoD | Depends | Status |
 |------|---------|-----|---------|--------|
-| 7.1 | Intersection math module `src/intersection/index.ts`: typed `computeIntersection(a, b)` for all 10 pairs; returns `{ exists: boolean, points: [number,number,number][], analytic: string[] }` where `analytic` is step-by-step KaTeX strings | All 10 pair functions covered; incompatible pairs return `{ exists: false, points: [], analytic: [] }` | Phase 6 | cc:TODO |
-| 7.2 | Install KaTeX; create `AnalyticPanel` component that renders each `analytic` string as a KaTeX block inside a scrollable panel | Panel renders `\frac{-b \pm \sqrt{b^2-4ac}}{2a}` correctly without React errors | 7.1 | cc:TODO |
-| 7.3 | Add `intersection: { idA: string \| null, idB: string \| null, result: IntersectionResult \| null }` slice to Zustand store; add `setIntersectionPair`, `clearIntersection` actions | State updates correctly when pair is set; result stored after compute | 7.1 | cc:TODO |
-| 7.4 | Intersection panel: collapsible sidebar section with two dropdowns (Object A, Object B — populated from scene objects), Compute button, result summary ("2 intersection points", "No intersection", "Parallel", "Skew") | Selecting two compatible objects and clicking Compute populates the result and analytic panel | 7.3 | cc:TODO |
-| 7.5 | Visualize intersection in 2D: draw result points as bright filled circles (radius 6px) with dashed construction lines to each parent object | Intersection point appears at the correct geometric location; updates when parent objects move | 7.4 | cc:TODO |
-| 7.6 | Visualize intersection in 3D: render result points as emissive `MeshBasicMaterial` spheres (r=0.08); plane×plane intersection line as a `LineSegments` primitive spanning ±10 units | Intersection geometry renders at correct 3D coordinates | 7.4 | cc:TODO |
-| 7.7 | Live recompute: Zustand subscription recomputes intersection whenever `idA` or `idB` object params change | Changing a ray's direction updates the intersection point in real time without clicking Compute again | 7.5, 7.6 | cc:TODO |
+| 7.1 | Intersection math module `src/intersection/index.ts`: typed `computeIntersection(a, b)` for all 10 pairs; returns `{ exists: boolean, points: [number,number,number][], analytic: string[] }` where `analytic` is step-by-step KaTeX strings | All 10 pair functions covered; incompatible pairs return `{ exists: false, points: [], analytic: [] }` | Phase 6 | cc:done |
+| 7.2 | Install KaTeX; create `AnalyticPanel` component that renders each `analytic` string as a KaTeX block inside a scrollable panel | Panel renders `\frac{-b \pm \sqrt{b^2-4ac}}{2a}` correctly without React errors | 7.1 | cc:done |
+| 7.3 | Add `intersection: { idA: string \| null, idB: string \| null, result: IntersectionResult \| null }` slice to Zustand store; add `setIntersectionPair`, `clearIntersection` actions | State updates correctly when pair is set; result stored after compute | 7.1 | cc:done |
+| 7.4 | Intersection panel: collapsible sidebar section with two dropdowns (Object A, Object B — populated from scene objects), Compute button, result summary ("2 intersection points", "No intersection", "Parallel", "Skew") | Selecting two compatible objects and clicking Compute populates the result and analytic panel | 7.3 | cc:done |
+| 7.5 | Visualize intersection in 2D: draw result points as bright filled circles (radius 6px) with dashed construction lines to each parent object | Intersection point appears at the correct geometric location; updates when parent objects move | 7.4 | cc:done |
+| 7.6 | Visualize intersection in 3D: render result points as emissive `MeshBasicMaterial` spheres (r=0.08); plane×plane intersection line as a `LineSegments` primitive spanning ±10 units | Intersection geometry renders at correct 3D coordinates | 7.4 | cc:done |
+| 7.7 | Live recompute: Zustand subscription recomputes intersection whenever `idA` or `idB` object params change | Changing a ray's direction updates the intersection point in real time without clicking Compute again | 7.5, 7.6 | cc:done |
 
 ---
 

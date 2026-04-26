@@ -4,6 +4,7 @@ import { OrbitControls, Grid } from '@react-three/drei'
 import * as THREE from 'three'
 import * as math from 'mathjs'
 import { useStore, SceneObject, EquationParams, PointParams, LineParams, SphereParams, PlaneParams, RayParams, BoxParams, TriangleParams } from '../../store/useStore'
+import type { IntersectionResult } from '../../intersection'
 
 function EquationSurface({ obj }: { obj: SceneObject }) {
   const { expression } = obj.params as EquationParams
@@ -178,8 +179,48 @@ function SceneObject3D({ obj }: { obj: SceneObject }) {
   }
 }
 
+function IntersectionLine3D({ origin, direction }: { origin: [number,number,number]; direction: [number,number,number] }) {
+  const [ox, oy, oz] = origin
+  const [dx, dy, dz] = direction
+  const lineObj = useMemo(() => {
+    const start = new THREE.Vector3(ox-dx*10, oy-dy*10, oz-dz*10)
+    const end   = new THREE.Vector3(ox+dx*10, oy+dy*10, oz+dz*10)
+    const geo = new THREE.BufferGeometry().setFromPoints([start, end])
+    const mat = new THREE.LineBasicMaterial({ color: '#facc15' })
+    return new THREE.Line(geo, mat)
+  }, [ox, oy, oz, dx, dy, dz]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => {
+    lineObj.geometry.dispose()
+    ;(lineObj.material as THREE.Material).dispose()
+  }, [lineObj])
+
+  return <primitive object={lineObj} />
+}
+
+function IntersectionResult3D({ result }: { result: IntersectionResult }) {
+  if (!result.exists) return null
+  return (
+    <>
+      {result.points.map((p, i) => (
+        <mesh key={i} position={p as [number,number,number]}>
+          <sphereGeometry args={[0.08, 12, 12]} />
+          <meshBasicMaterial color="#facc15" />
+        </mesh>
+      ))}
+      {result.line && (
+        <IntersectionLine3D
+          origin={result.line.origin}
+          direction={result.line.direction}
+        />
+      )}
+    </>
+  )
+}
+
 export function Viewport3D() {
   const objects = useStore((s) => s.objects)
+  const intersectionResult = useStore((s) => s.intersection.result)
 
   return (
     <Canvas
@@ -208,6 +249,8 @@ export function Viewport3D() {
       {objects.map((obj) => (
         <SceneObject3D key={obj.id} obj={obj} />
       ))}
+
+      {intersectionResult && <IntersectionResult3D result={intersectionResult} />}
 
       <OrbitControls makeDefault />
     </Canvas>

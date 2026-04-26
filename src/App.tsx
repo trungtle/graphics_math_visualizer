@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useStore } from './store/useStore'
 import { InputPanel } from './components/sidebar/InputPanel'
 import { Toolbar } from './components/sidebar/Toolbar'
+import { IntersectionPanel } from './components/sidebar/IntersectionPanel'
 import { Viewport2D } from './components/viewport/Viewport2D'
 import { Viewport3D } from './components/viewport/Viewport3D'
 
@@ -59,9 +60,12 @@ export default function App() {
 
   return (
     <div className="flex w-full h-full bg-zinc-950">
-      <aside className="w-72 shrink-0 border-r border-zinc-700 flex flex-col">
+      <aside className="w-72 shrink-0 border-r border-zinc-700 flex flex-col overflow-hidden">
         <Toolbar />
-        <InputPanel />
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+          <InputPanel />
+        </div>
+        <IntersectionPanel />
       </aside>
 
       <main className="flex-1 relative">
