@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, RefObject } from 'react'
 import * as math from 'mathjs'
-import { useStore, SceneObject, EquationParams, PointParams, LineParams, CircleParams, RayParams } from '../../store/useStore'
+import { useStore, SceneObject, EquationParams, PointParams, LineParams, CircleParams, RayParams, BoxParams, TriangleParams } from '../../store/useStore'
 
 const GRID_COLOR = '#2a2a2a'
 const AXIS_COLOR = '#444'
@@ -153,6 +153,43 @@ function drawRay(ctx: CanvasRenderingContext2D, obj: SceneObject, t: Transform) 
   ctx.stroke()
 }
 
+function drawBox(ctx: CanvasRenderingContext2D, obj: SceneObject, t: Transform) {
+  const { minX, minY, maxX, maxY } = obj.params as BoxParams
+  const tl = toCanvas(minX, maxY, t)
+  const w = (maxX - minX) * t.scale
+  const h = (maxY - minY) * t.scale
+  ctx.globalAlpha = 0.15
+  ctx.fillStyle = obj.color
+  ctx.fillRect(tl.x, tl.y, w, h)
+  ctx.globalAlpha = 1
+  ctx.strokeStyle = obj.color
+  ctx.lineWidth = 2
+  ctx.strokeRect(tl.x, tl.y, w, h)
+  ctx.fillStyle = LABEL_COLOR
+  ctx.font = '10px monospace'
+  ctx.textAlign = 'left'
+  ctx.fillText(`(${minX},${minY})`, tl.x + 2, tl.y + h + 12)
+}
+
+function drawTriangle(ctx: CanvasRenderingContext2D, obj: SceneObject, t: Transform) {
+  const { x1, y1, x2, y2, x3, y3 } = obj.params as TriangleParams
+  const p1 = toCanvas(x1, y1, t)
+  const p2 = toCanvas(x2, y2, t)
+  const p3 = toCanvas(x3, y3, t)
+  ctx.beginPath()
+  ctx.moveTo(p1.x, p1.y)
+  ctx.lineTo(p2.x, p2.y)
+  ctx.lineTo(p3.x, p3.y)
+  ctx.closePath()
+  ctx.globalAlpha = 0.15
+  ctx.fillStyle = obj.color
+  ctx.fill()
+  ctx.globalAlpha = 1
+  ctx.strokeStyle = obj.color
+  ctx.lineWidth = 2
+  ctx.stroke()
+}
+
 export function Viewport2D({ canvasRef: externalRef }: { canvasRef?: RefObject<HTMLCanvasElement | null> }) {
   const internalRef = useRef<HTMLCanvasElement>(null)
   const canvasRef = externalRef ?? internalRef
@@ -180,6 +217,8 @@ export function Viewport2D({ canvasRef: externalRef }: { canvasRef?: RefObject<H
         case 'line': drawLine(ctx, obj, t); break
         case 'circle': drawCircle(ctx, obj, t); break
         case 'ray': drawRay(ctx, obj, t); break
+        case 'box': drawBox(ctx, obj, t); break
+        case 'triangle': drawTriangle(ctx, obj, t); break
       }
     }
   }, [objects])

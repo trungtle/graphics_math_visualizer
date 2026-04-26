@@ -1,9 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid } from '@react-three/drei'
 import * as THREE from 'three'
 import * as math from 'mathjs'
-import { useStore, SceneObject, EquationParams, PointParams, LineParams, SphereParams, PlaneParams, RayParams } from '../../store/useStore'
+import { useStore, SceneObject, EquationParams, PointParams, LineParams, SphereParams, PlaneParams, RayParams, BoxParams, TriangleParams } from '../../store/useStore'
 
 function EquationSurface({ obj }: { obj: SceneObject }) {
   const { expression } = obj.params as EquationParams
@@ -106,6 +106,63 @@ function Ray3D({ obj }: { obj: SceneObject }) {
   return <primitive object={arrow} />
 }
 
+function Box3D({ obj }: { obj: SceneObject }) {
+  const { minX, minY, minZ, maxX, maxY, maxZ } = obj.params as BoxParams
+  const cx = (minX + maxX) / 2
+  const cy = (minY + maxY) / 2
+  const cz = (minZ + maxZ) / 2
+  const sx = Math.abs(maxX - minX) || 0.01
+  const sy = Math.abs(maxY - minY) || 0.01
+  const sz = Math.abs(maxZ - minZ) || 0.01
+
+  const lineSegments = useMemo(() => {
+    const box = new THREE.BoxGeometry(sx, sy, sz)
+    const edges = new THREE.EdgesGeometry(box)
+    box.dispose()
+    const mat = new THREE.LineBasicMaterial({ color: obj.color })
+    const ls = new THREE.LineSegments(edges, mat)
+    ls.position.set(cx, cy, cz)
+    return ls
+  }, [cx, cy, cz, sx, sy, sz, obj.color]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      lineSegments.geometry.dispose()
+      ;(lineSegments.material as THREE.Material).dispose()
+    }
+  }, [lineSegments])
+
+  return <primitive object={lineSegments} />
+}
+
+function Triangle3D({ obj }: { obj: SceneObject }) {
+  const { x1, y1, z1, x2, y2, z2, x3, y3, z3 } = obj.params as TriangleParams
+
+  const mesh = useMemo(() => {
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.BufferAttribute(
+      new Float32Array([x1, y1, z1, x2, y2, z2, x3, y3, z3]), 3
+    ))
+    geo.computeVertexNormals()
+    const mat = new THREE.MeshPhongMaterial({
+      color: obj.color,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.75,
+    })
+    return new THREE.Mesh(geo, mat)
+  }, [x1, y1, z1, x2, y2, z2, x3, y3, z3, obj.color]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      mesh.geometry.dispose()
+      ;(mesh.material as THREE.Material).dispose()
+    }
+  }, [mesh])
+
+  return <primitive object={mesh} />
+}
+
 function SceneObject3D({ obj }: { obj: SceneObject }) {
   if (!obj.visible) return null
   switch (obj.type) {
@@ -115,6 +172,8 @@ function SceneObject3D({ obj }: { obj: SceneObject }) {
     case 'sphere': return <Sphere3D obj={obj} />
     case 'plane': return <Plane3D obj={obj} />
     case 'ray': return <Ray3D obj={obj} />
+    case 'box': return <Box3D obj={obj} />
+    case 'triangle': return <Triangle3D obj={obj} />
     default: return null
   }
 }

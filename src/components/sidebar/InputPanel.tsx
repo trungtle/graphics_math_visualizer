@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import * as math from 'mathjs'
-import { useStore, ObjectType, SceneObject, RayParams, EquationParams, PointParams, LineParams, CircleParams, SphereParams, PlaneParams } from '../../store/useStore'
+import { useStore, ObjectType, SceneObject, RayParams, EquationParams, PointParams, LineParams, CircleParams, SphereParams, PlaneParams, BoxParams, TriangleParams } from '../../store/useStore'
 import { LayerList } from './LayerList'
 
 const COLORS = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#60a5fa', '#a78bfa', '#f472b6']
@@ -22,6 +22,8 @@ const DEFAULT_PARAMS: Record<ObjectType, object> = {
   sphere: { cx: 0, cy: 0, cz: 0, r: 1 },
   plane: { nx: 0, ny: 1, nz: 0, d: 0 },
   ray: { ox: 0, oy: 0, oz: 0, dx: 1, dy: 0, dz: 0, length: 5 },
+  box: { minX: -1, minY: -1, minZ: -1, maxX: 1, maxY: 1, maxZ: 1 },
+  triangle: { x1: 0, y1: 1, z1: 0, x2: -1, y2: -1, z2: 0, x3: 1, y3: -1, z3: 0 },
 }
 
 export function InputPanel() {
@@ -74,7 +76,7 @@ export function InputPanel() {
           value={type}
           onChange={(e) => handleTypeChange(e.target.value as ObjectType)}
         >
-          {(['equation', 'point', 'line', 'circle', 'sphere', 'plane', 'ray'] as ObjectType[]).map((t) => (
+          {(['equation', 'point', 'line', 'circle', 'sphere', 'plane', 'ray', 'box', 'triangle'] as ObjectType[]).map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
@@ -170,6 +172,31 @@ function ParamFields({ type, params, renderMode, onChange }: ParamFieldsProps) {
       <Field label="dy" field="dy" value={p.dy} onChange={onChange} />
       {renderMode === '3d' && <Field label="dz" field="dz" value={p.dz} onChange={onChange} />}
       <Field label="len" field="length" value={p.length} onChange={onChange} />
+    </>
+  }
+  if (type === 'box') {
+    const p = params as unknown as BoxParams
+    return <>
+      <Field label="minX" field="minX" value={p.minX} onChange={onChange} />
+      <Field label="minY" field="minY" value={p.minY} onChange={onChange} />
+      {renderMode === '3d' && <Field label="minZ" field="minZ" value={p.minZ} onChange={onChange} />}
+      <Field label="maxX" field="maxX" value={p.maxX} onChange={onChange} />
+      <Field label="maxY" field="maxY" value={p.maxY} onChange={onChange} />
+      {renderMode === '3d' && <Field label="maxZ" field="maxZ" value={p.maxZ} onChange={onChange} />}
+    </>
+  }
+  if (type === 'triangle') {
+    const p = params as unknown as TriangleParams
+    return <>
+      <Field label="x1" field="x1" value={p.x1} onChange={onChange} />
+      <Field label="y1" field="y1" value={p.y1} onChange={onChange} />
+      {renderMode === '3d' && <Field label="z1" field="z1" value={p.z1} onChange={onChange} />}
+      <Field label="x2" field="x2" value={p.x2} onChange={onChange} />
+      <Field label="y2" field="y2" value={p.y2} onChange={onChange} />
+      {renderMode === '3d' && <Field label="z2" field="z2" value={p.z2} onChange={onChange} />}
+      <Field label="x3" field="x3" value={p.x3} onChange={onChange} />
+      <Field label="y3" field="y3" value={p.y3} onChange={onChange} />
+      {renderMode === '3d' && <Field label="z3" field="z3" value={p.z3} onChange={onChange} />}
     </>
   }
   return null

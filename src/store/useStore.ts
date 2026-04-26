@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export type RenderMode = '2d' | '3d'
 
-export type ObjectType = 'equation' | 'point' | 'line' | 'circle' | 'sphere' | 'plane' | 'ray'
+export type ObjectType = 'equation' | 'point' | 'line' | 'circle' | 'sphere' | 'plane' | 'ray' | 'box' | 'triangle'
 
 export interface EquationParams {
   expression: string
@@ -53,6 +53,27 @@ export interface RayParams {
   length: number
 }
 
+export interface BoxParams {
+  minX: number
+  minY: number
+  minZ: number
+  maxX: number
+  maxY: number
+  maxZ: number
+}
+
+export interface TriangleParams {
+  x1: number
+  y1: number
+  z1: number
+  x2: number
+  y2: number
+  z2: number
+  x3: number
+  y3: number
+  z3: number
+}
+
 export type ObjectParams =
   | EquationParams
   | PointParams
@@ -61,6 +82,8 @@ export type ObjectParams =
   | SphereParams
   | PlaneParams
   | RayParams
+  | BoxParams
+  | TriangleParams
 
 export interface SceneObject {
   id: string
