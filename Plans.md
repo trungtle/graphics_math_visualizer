@@ -127,10 +127,10 @@ Created: 2026-04-26
 
 | Task | Content | DoD | Depends | Status |
 |------|---------|-----|---------|--------|
-| 8.1 | Add `editingId: string \| null` to Zustand store; double-clicking an object in the layer list enters edit mode and loads its params/color into the input panel | Double-click populates input panel fields with the selected object's current values | - | cc:TODO |
-| 8.2 | InputPanel edit mode: when `editingId` is set, show "Update" button instead of "Add"; color picker and all param fields reflect the object being edited | Modifying a field and clicking Update changes the object in the scene | 8.1 | cc:TODO |
-| 8.3 | Add `updateObject(id, params, color, label)` action to store; Update button calls it and clears `editingId`; Escape key also cancels edit | Updated object immediately re-renders in the viewport; layer list reflects new label/color | 8.2 | cc:TODO |
-| 8.4 | Visual indicator in layer list: object being edited shows a pencil icon and highlighted row; clicking a different object while editing prompts to discard changes | Edit state is clearly communicated; accidental overwrites are prevented | 8.3 | cc:TODO |
+| 8.1 | Add `editingId: string \| null` to Zustand store; double-clicking an object in the layer list enters edit mode and loads its params/color into the input panel | Double-click populates input panel fields with the selected object's current values | - | cc:done |
+| 8.2 | InputPanel edit mode: when `editingId` is set, show "Update" button instead of "Add"; color picker and all param fields reflect the object being edited | Modifying a field and clicking Update changes the object in the scene | 8.1 | cc:done |
+| 8.3 | Add `updateObject(id, params, color, label)` action to store; Update button calls it and clears `editingId`; Escape key also cancels edit | Updated object immediately re-renders in the viewport; layer list reflects new label/color | 8.2 | cc:done |
+| 8.4 | Visual indicator in layer list: object being edited shows a pencil icon and highlighted row; clicking a different object while editing prompts to discard changes | Edit state is clearly communicated; accidental overwrites are prevented | 8.3 | cc:done |
 
 ---
 

@@ -105,6 +105,7 @@ interface StoreState {
   renderMode: RenderMode
   objects: SceneObject[]
   selectedId: string | null
+  editingId: string | null
   intersection: IntersectionState
   setRenderMode: (mode: RenderMode) => void
   addObject: (obj: SceneObject) => void
@@ -112,6 +113,8 @@ interface StoreState {
   toggleVisible: (id: string) => void
   selectObject: (id: string | null) => void
   setObjects: (objects: SceneObject[]) => void
+  setEditingId: (id: string | null) => void
+  updateObject: (id: string, type: ObjectType, params: ObjectParams, color: string, label: string) => void
   setIntersectionPair: (idA: string | null, idB: string | null) => void
   setIntersectionResult: (result: IntersectionResult | null) => void
   clearIntersection: () => void
@@ -121,6 +124,7 @@ export const useStore = create<StoreState>((set) => ({
   renderMode: '2d',
   objects: [],
   selectedId: null,
+  editingId: null,
   intersection: { idA: null, idB: null, result: null },
   setRenderMode: (mode) => set({ renderMode: mode }),
   addObject: (obj) => set((s) => ({ objects: [...s.objects, obj] })),
@@ -128,6 +132,10 @@ export const useStore = create<StoreState>((set) => ({
   toggleVisible: (id) => set((s) => ({ objects: s.objects.map((o) => o.id === id ? { ...o, visible: !o.visible } : o) })),
   selectObject: (id) => set({ selectedId: id }),
   setObjects: (objects) => set({ objects }),
+  setEditingId: (id) => set({ editingId: id }),
+  updateObject: (id, type, params, color, label) => set((s) => ({
+    objects: s.objects.map((o) => o.id === id ? { ...o, type, params, color, label } : o),
+  })),
   setIntersectionPair: (idA, idB) => set((s) => ({ intersection: { ...s.intersection, idA, idB, result: null } })),
   setIntersectionResult: (result) => set((s) => ({ intersection: { ...s.intersection, result } })),
   clearIntersection: () => set({ intersection: { idA: null, idB: null, result: null } }),

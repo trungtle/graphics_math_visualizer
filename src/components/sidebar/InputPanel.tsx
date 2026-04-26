@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as math from 'mathjs'
 import { useStore, ObjectType, SceneObject, RayParams, EquationParams, PointParams, LineParams, CircleParams, SphereParams, PlaneParams, BoxParams, TriangleParams } from '../../store/useStore'
 import { LayerList } from './LayerList'
@@ -27,33 +27,87 @@ const DEFAULT_PARAMS: Record<ObjectType, object> = {
 }
 
 export function InputPanel() {
-  const { addObject, renderMode } = useStore()
+  const { addObject, updateObject, renderMode, editingId, setEditingId, objects } = useStore()
   const [type, setType] = useState<ObjectType>('equation')
   const [params, setParams] = useState<Record<string, string | number>>(DEFAULT_PARAMS.equation as Record<string, string | number>)
   const [color, setColor] = useState(nextColor)
   const [error, setError] = useState('')
+  const [isDirty, setIsDirty] = useState(false)
+  const [discardTarget, setDiscardTarget] = useState<string | null>(null)
+
+  // Sync InputPanel state from the object being edited (only fires when editingId changes)
+  useEffect(() => {
+    if (!editingId) return
+    const obj = objects.find((o) => o.id === editingId)
+    if (!obj) return
+    setType(obj.type)
+    setParams(obj.params as unknown as Record<string, string | number>)
+    setColor(obj.color)
+    setIsDirty(false)
+    setError('')
+  }, [editingId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Escape cancels edit; Enter triggers add/update (unless in a select)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && editingId) {
+        cancelEdit()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [editingId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  function cancelEdit() {
+    setEditingId(null)
+    setIsDirty(false)
+    setDiscardTarget(null)
+    setType('equation')
+    setParams(DEFAULT_PARAMS.equation as Record<string, string | number>)
+    setColor(nextColor())
+  }
+
+  function handleRequestEdit(id: string) {
+    if (editingId === id) return
+    if (isDirty) {
+      setDiscardTarget(id)
+    } else {
+      setEditingId(id)
+    }
+  }
 
   function handleTypeChange(t: ObjectType) {
     setType(t)
     setParams(DEFAULT_PARAMS[t] as Record<string, string | number>)
     setError('')
+    if (editingId) setIsDirty(true)
   }
 
   function handleParamChange(key: string, value: string) {
     setParams((p) => ({ ...p, [key]: key === 'expression' ? value : parseFloat(value) || 0 }))
+    if (editingId) setIsDirty(true)
   }
 
-  function handleAdd() {
+  function handleColorChange(c: string) {
+    setColor(c)
+    if (editingId) setIsDirty(true)
+  }
+
+  function validate(): boolean {
     setError('')
     if (type === 'equation') {
       try {
-        const expr = (params as { expression: string }).expression
-        math.parse(expr)
+        math.parse((params as { expression: string }).expression)
       } catch {
         setError('Invalid expression')
-        return
+        return false
       }
     }
+    return true
+  }
+
+  function handleAdd() {
+    if (!validate()) return
     const obj: SceneObject = {
       id: uid(),
       type,
@@ -67,8 +121,29 @@ export function InputPanel() {
     setParams(DEFAULT_PARAMS[type] as Record<string, string | number>)
   }
 
+  function handleUpdate() {
+    if (!editingId || !validate()) return
+    const original = objects.find((o) => o.id === editingId)
+    const label = type === 'equation'
+      ? (params as { expression: string }).expression
+      : (original?.label ?? `${type}-${editingId.slice(0, 4)}`)
+    updateObject(editingId, type, params as unknown as SceneObject['params'], color, label)
+    setEditingId(null)
+    setIsDirty(false)
+    setParams(DEFAULT_PARAMS[type] as Record<string, string | number>)
+    setColor(nextColor())
+  }
+
   return (
     <div className="flex flex-col h-full bg-zinc-900 text-zinc-100 font-mono text-sm">
+      {editingId && (
+        <div className="px-3 py-1.5 bg-blue-900/30 border-b border-blue-800 text-blue-300 text-xs flex items-center gap-2">
+          <span>✎</span>
+          <span className="flex-1 truncate">Editing: {objects.find(o => o.id === editingId)?.label}</span>
+          <button onClick={cancelEdit} className="text-blue-400 hover:text-blue-200 text-xs">✕</button>
+        </div>
+      )}
+
       <div className="p-3 border-b border-zinc-700">
         <label className="block text-zinc-400 text-xs mb-1">TYPE</label>
         <select
@@ -86,19 +161,62 @@ export function InputPanel() {
         <ParamFields type={type} params={params} renderMode={renderMode} onChange={handleParamChange} />
         <div className="flex items-center gap-2">
           <label className="text-zinc-400 text-xs">COLOR</label>
-          <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent" />
+          <input
+            type="color"
+            value={color}
+            onChange={(e) => handleColorChange(e.target.value)}
+            className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent"
+          />
         </div>
         {error && <p className="text-red-400 text-xs">{error}</p>}
-        <button
-          onClick={handleAdd}
-          className="bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-1 text-xs font-semibold mt-1"
-        >
-          ADD (Enter)
-        </button>
+
+        {discardTarget && (
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded px-2 py-2 text-xs">
+            <p className="text-yellow-300 mb-1.5">Discard unsaved changes?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setEditingId(discardTarget); setDiscardTarget(null); setIsDirty(false) }}
+                className="bg-yellow-700 hover:bg-yellow-600 text-white rounded px-2 py-1 text-xs"
+              >
+                Discard
+              </button>
+              <button
+                onClick={() => setDiscardTarget(null)}
+                className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 rounded px-2 py-1 text-xs"
+              >
+                Keep editing
+              </button>
+            </div>
+          </div>
+        )}
+
+        {editingId ? (
+          <div className="flex gap-2 mt-1">
+            <button
+              onClick={handleUpdate}
+              className="flex-1 bg-green-700 hover:bg-green-600 text-white rounded px-3 py-1 text-xs font-semibold"
+            >
+              UPDATE
+            </button>
+            <button
+              onClick={cancelEdit}
+              className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 rounded px-3 py-1 text-xs"
+            >
+              Cancel (Esc)
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleAdd}
+            className="bg-blue-600 hover:bg-blue-500 text-white rounded px-3 py-1 text-xs font-semibold mt-1"
+          >
+            ADD (Enter)
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <LayerList />
+        <LayerList editingId={editingId} onRequestEdit={handleRequestEdit} />
       </div>
     </div>
   )
